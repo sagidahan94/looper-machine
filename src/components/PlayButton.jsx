@@ -12,17 +12,18 @@ const useStyles = makeStyles({
   },
 });
 
-function PlayButton({ playMusic, isPlaying }) {
+const PlayButton = ({ playMusic, isPlaying, isSoundsClicked }) => {
   const classes = useStyles();
 
   return (
     <Button
+      disabled={!isSoundsClicked}
       className={isPlaying ? classes.button_selected : classes.button}
       onClick={() => playMusic()}
     >
       <PlayArrowIcon></PlayArrowIcon>
     </Button>
   );
-}
+};
 
 export default PlayButton;

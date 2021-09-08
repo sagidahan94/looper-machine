@@ -12,7 +12,7 @@ const useStyles = makeStyles({
   },
 });
 
-function RecordButton({ recordMusic, isRecord, isPlaying }) {
+const RecordButton = ({ recordMusic, isRecord, isPlaying }) => {
   const classes = useStyles();
 
   return (
@@ -24,6 +24,6 @@ function RecordButton({ recordMusic, isRecord, isPlaying }) {
       <FiberManualRecordIcon></FiberManualRecordIcon>
     </Button>
   );
-}
+};
 
 export default RecordButton;

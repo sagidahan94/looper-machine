@@ -11,10 +11,10 @@ const useStyles = makeStyles({
   },
 });
 
-function PlaySessionButton({ playSession, isRecord, isRecordEmpty }) {
+const PlaySessionButton = ({ playRecoding, isRecord, isRecordEmpty }) => {
   const classes = useStyles();
 
-  return <Button onClick={() => playSession(0)}>play Session</Button>;
-}
+  return <Button onClick={() => playRecoding(0)}>play Session</Button>;
+};
 
 export default PlaySessionButton;

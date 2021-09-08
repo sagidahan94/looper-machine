@@ -23,7 +23,7 @@ const useStyles = makeStyles((theme) =>
 );
 
 // Initiailize the sounds object
-function GenerateSounds() {
+const GenerateSounds = () => {
   return {
     1: {
       id: 1,
@@ -98,9 +98,9 @@ function GenerateSounds() {
       ),
     },
   };
-}
+};
 
-function App() {
+const App = () => {
   // Styles
   const classes = useStyles();
 
@@ -110,15 +110,23 @@ function App() {
 
   // States
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isSoundsClicked, setIsSoundsClicked] = useState(false);
   const [isRecord, setIsRecord] = useState({ value: false });
   const [sounds, setSounds] = useState(GenerateSounds());
   const [stateCurrInterval, setStateCurrInterval] = useState(1);
-  // const [soundsRecorded, setSoundsRecorded] = useState(GenerateSounds());
   const [recordInterval, setRecordInterval] = useState([]);
 
   // Check if record is empty
   const recordIsEmpty = () => {
     return recordInterval.length === 0;
+  };
+
+  // Set record state
+  const setRecord = () => {
+    let record = isRecord;
+    record.value = !record.value;
+    setIsRecord(isRecord);
+    forceUpdate();
   };
 
   // Handle in pad(sound) click
@@ -127,36 +135,38 @@ function App() {
     sound.isActive = !sound.isActive;
     setSounds(sounds);
     forceUpdate();
+    if (Object.values(sounds).filter((x) => x.isActive).length > 0) {
+      setIsSoundsClicked(true);
+    } else {
+      setIsSoundsClicked(false);
+    }
   };
 
   // Handle record click
   const handleRecordClick = () => {
     if (!isRecord.value) {
+      setRecordInterval([]);
       // Set record state
-      let record = isRecord;
-      record.value = !record.value;
-      setIsRecord(isRecord);
-      forceUpdate();
+      setRecord();
 
       // Update the first interval of recording - when click on recording
       if (isPlaying) {
         const activeSounds = Object.values(sounds).filter((x) => x.isActive);
         if (activeSounds.length === 0) return;
         const startTime = activeSounds[0].audio.currentTime * 1000;
-        recordInterval.push({
+        let intervalToPush = {
           startTime: startTime,
           durationTime: 8000 - startTime,
           ids: activeSounds.map((x) => x.id),
-        });
+        };
+        setRecordInterval((prev) => [...prev, intervalToPush]);
       }
     }
     // Set the last interval of recording - when click off recording
     else {
-      // Set record
-      let record = isRecord;
-      record.value = !record.value;
-      setIsRecord(isRecord);
-      forceUpdate();
+      // Set record state
+      setRecord();
+
       // Set the last session of the record
       const activeSounds = Object.values(sounds).filter((x) => x.isActive);
       const endTime = activeSounds[0].audio.currentTime * 1000;
@@ -169,11 +179,16 @@ function App() {
   // Play the record Session
   const playRecoding = (index) => {
     if (index == 0) {
-      // stopMusic();  // stop the music when play session
+      stopMusic();
+    } // stop the music when play session
+    else {
       Object.values(sounds).map((sound) => {
+        sound.isActive = false;
         sound.audio.pause();
         sound.audio.currentTime = 0;
       });
+      setSounds(sounds);
+      forceUpdate();
     }
 
     // Change state to playing
@@ -190,31 +205,35 @@ function App() {
         sounds[currentSoundId].audio.currentTime =
           currentRecord.startTime / 1000.0;
         sounds[currentSoundId].audio.play();
-        setTimeout(() => {
-          playRecoding(index + 1); // Recursive call to this function
-        }, currentRecord.durationTime);
       }
+      setSounds(sounds);
+      forceUpdate();
+
+      setTimeout(() => {
+        playRecoding(index + 1); // Recursive call to this function
+      }, currentRecord.durationTime);
     }
   };
 
   const updateLooper = () => {
     // If recording- update the intervals
     if (isRecord.value) {
-      recordInterval.push({
+      let intevalToPush = {
         startTime: 0,
         durationTime: 8000,
         ids: Object.values(sounds)
           .filter((x) => x.isActive)
           .map((x) => x.id),
-      });
+      };
+      setRecordInterval((prev) => [...prev, intevalToPush]);
     }
 
     // Playing the sound in intervals
-    firstInvokeUpdateLooper();
+    playSoundsInterval();
   };
 
   // Playing the sound in intervals
-  const firstInvokeUpdateLooper = () => {
+  const playSoundsInterval = () => {
     Object.values(sounds).map((sound) => {
       if (sound.isActive) {
         sound.audio.pause();
@@ -232,7 +251,7 @@ function App() {
     if (!isPlaying) {
       setIsPlaying((isPlaying) => !isPlaying);
 
-      firstInvokeUpdateLooper();
+      playSoundsInterval();
       const interval = setInterval(() => updateLooper(), 8000);
       setStateCurrInterval(interval);
     }
@@ -242,12 +261,9 @@ function App() {
   const stopMusic = () => {
     //Only if play state - true
     if (isPlaying) {
-      // Yarden coded: extract to function
       if (isRecord.value) {
-        let record = isRecord;
-        record.value = !record.value;
-        setIsRecord(isRecord);
-        forceUpdate();
+        // Set record state
+        setRecord();
       }
 
       // Change state of playing
@@ -256,9 +272,13 @@ function App() {
       clearInterval(stateCurrInterval);
       // Stop all the sounds
       Object.values(sounds).map((sound) => {
+        sound.isActive = false;
         sound.audio.pause();
         sound.audio.currentTime = 0;
       });
+
+      setSounds(sounds);
+      forceUpdate();
     }
   };
 
@@ -267,7 +287,7 @@ function App() {
     <div className={classes.root}>
       <ButtonGroup className={classes.buttons} className="music-sounds">
         <PlaySessionButton
-          playSession={playRecoding}
+          playRecoding={playRecoding}
           isRecord={isRecord.value}
           isRecordEmpty={recordIsEmpty}
         />
@@ -277,10 +297,14 @@ function App() {
           isRecord={isRecord.value}
         />
         <StopButton stopMusic={stopMusic} isPlaying={isPlaying} />
-        <PlayButton playMusic={playMusic} isPlaying={isPlaying} />
+        <PlayButton
+          playMusic={playMusic}
+          isPlaying={isPlaying}
+          isSoundsClicked={isSoundsClicked}
+        />
       </ButtonGroup>
       <Box>
-        <Grid className={classes.pads} className="my-button">
+        <Grid className={classes.pads}>
           {Object.values(sounds).map((sound) => (
             <Pad key={sound.id} sound={sound} updatedSound={handleSoundClick} />
           ))}
@@ -288,6 +312,6 @@ function App() {
       </Box>
     </div>
   );
-}
+};
 
 export default App;
