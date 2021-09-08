@@ -1,6 +1,6 @@
 import { ButtonGroup } from "@material-ui/core";
 import { createStyles, makeStyles } from "@material-ui/core/styles";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useCallback } from "react";
 import Pad from "./components/Pad.jsx";
 import PlayButton from "./components/PlayButton.jsx";
 import RecordButton from "./components/RecordButton.jsx";
@@ -95,35 +95,20 @@ function GenerateSounds() {
 
 function App() {
   const classes = useStyles();
+
+  const [, updateState] = useState();
+  const forceUpdate = useCallback(() => updateState({}), []);
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [sounds, setSounds] = useState(GenerateSounds());
-  const [activeSounds, setActiveSounds] = useState([]);
   const [stateCurrInterval, setStateCurrInterval] = useState(1);
-  // const [stateNextInterval, setStateNextInterval] = useState(1);
-  // const [timeOutState, setTimeOutState] = useState(1);
-
-  useEffect(() => {
-    /*if (isPlaying) {
-      setTimeOutState(
-        setTimeout(() => {
-          clearInterval(stateCurrInterval);
-          let interval = setInterval(() => updateLooper(), 8000);
-          setStateNextInterval(interval);
-        }, Math.abs(8000 - (stateCurrInterval.currentTime % 8000)))
-      );
-    }*/
-  }, [activeSounds]);
 
   const handleSoundClick = (soundId) => {
-    const sound = sounds[soundId];
+    let sound = sounds[soundId];
     sound.isActive = !sound.isActive;
 
     setSounds(sounds);
-    let selectedSounds = Object.values(sounds)
-      .filter((sounds) => sounds.isActive)
-      .map((x) => x.id);
-    setActiveSounds(selectedSounds);
-    console.log(activeSounds);
+    forceUpdate();
   };
 
   const updateLooper = () => {
@@ -132,9 +117,7 @@ function App() {
         sound.audio.pause();
         sound.audio.currentTime = 0;
         sound.audio.play();
-      }
-      // sounds[index].audio.loop = true;
-      else {
+      } else {
         sound.audio.pause();
         sound.audio.currentTime = 0;
       }
@@ -142,12 +125,9 @@ function App() {
   };
 
   const playMusic = () => {
-    if (!isPlaying && activeSounds.length > 0) {
-      console.log("playy");
+    if (!isPlaying) {
       setIsPlaying((isPlaying) => !isPlaying);
 
-      // let looper = updateLooper.bind(activeSounds);
-      // setTimeout(updateLooper(),8000);
       updateLooper();
       let interval = setInterval(() => updateLooper(), 8000);
       setStateCurrInterval(interval);
@@ -158,8 +138,6 @@ function App() {
     if (isPlaying) {
       setIsPlaying((isPlaying) => !isPlaying);
       clearInterval(stateCurrInterval);
-      // clearInterval(stateNextInterval);
-      // clearTimeout(timeOutState);
       Object.values(sounds).map((sound) => {
         sound.audio.pause();
         sound.audio.currentTime = 0;
