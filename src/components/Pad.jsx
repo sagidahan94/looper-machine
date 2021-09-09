@@ -1,22 +1,27 @@
 import React from "react";
 import Button from "@material-ui/core/Button";
-import { createStyles, makeStyles } from "@material-ui/core/styles";
+import { makeStyles } from "@material-ui/core/styles";
 
 const useStyles = makeStyles({
-  root: {
+  button: {
     background: "white",
+    padding: 10,
+    borderSpacing: 10,
   },
-  root_selected: {
-    background: "red",
+  button_selected: {
+    background: "yellow",
+    padding: 10,
+    borderSpacing: 10,
   },
 });
 
-const Pad = ({ key, sound, updatedSound }) => {
+const Pad = ({ sound, updatedSound }) => {
   const classes = useStyles();
 
   return (
     <Button
-      className={sound.isActive ? classes.root_selected : classes.root}
+      variant="contained"
+      className={sound.isActive ? classes.button_selected : classes.button}
       key={sound.id}
       onClick={() => updatedSound(sound.id)}
     >
