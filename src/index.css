@@ -12,16 +12,3 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
-
-.music-sounds {
-  left: 40%;
-  top: 16px;
-  position: relative;
-}
-
-.my-button {
-  padding: 0.5%;
-  margin-left: 2%;
-  border-radius: 30px;
-  margin-top: 2%;
-}

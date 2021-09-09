@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "@material-ui/core";
 import PlayArrowIcon from "@material-ui/icons/PlayArrow";
-import { createStyles, makeStyles } from "@material-ui/core/styles";
+import { makeStyles } from "@material-ui/core/styles";
 
 const useStyles = makeStyles({
   button: {
@@ -12,14 +12,14 @@ const useStyles = makeStyles({
   },
 });
 
-const PlayButton = ({ playMusic, isPlaying, isSoundsClicked }) => {
+const PlayButton = ({ handlePlayMusicClick, isPlaying, isSoundsClicked }) => {
   const classes = useStyles();
 
   return (
     <Button
       disabled={!isSoundsClicked}
       className={isPlaying ? classes.button_selected : classes.button}
-      onClick={() => playMusic()}
+      onClick={() => handlePlayMusicClick()}
     >
       <PlayArrowIcon></PlayArrowIcon>
     </Button>

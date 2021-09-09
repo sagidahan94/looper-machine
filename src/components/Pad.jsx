@@ -1,6 +1,6 @@
 import React from "react";
 import Button from "@material-ui/core/Button";
-import { createStyles, makeStyles } from "@material-ui/core/styles";
+import { makeStyles } from "@material-ui/core/styles";
 
 const useStyles = makeStyles({
   button: {
@@ -15,7 +15,7 @@ const useStyles = makeStyles({
   },
 });
 
-const Pad = ({ key, sound, updatedSound }) => {
+const Pad = ({ sound, updatedSound }) => {
   const classes = useStyles();
 
   return (

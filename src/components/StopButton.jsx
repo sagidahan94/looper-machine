@@ -2,9 +2,9 @@ import { Button } from "@material-ui/core";
 import StopIcon from "@material-ui/icons/Stop";
 import React from "react";
 
-const StopButton = ({ stopMusic, isPlaying }) => {
+const StopButton = ({ handleStopMusicClick, isPlaying }) => {
   return (
-    <Button onClick={() => stopMusic()}>
+    <Button onClick={() => handleStopMusicClick()}>
       <StopIcon></StopIcon>
     </Button>
   );

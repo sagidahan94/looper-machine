@@ -1,5 +1,6 @@
-import { ButtonGroup } from "@material-ui/core";
-import { createStyles, makeStyles, s } from "@material-ui/core/styles";
+import { ButtonGroup, Typography } from "@material-ui/core";
+import "./App.css";
+import { createStyles, makeStyles } from "@material-ui/core/styles";
 import React, { useState, useCallback } from "react";
 import Pad from "./components/Pad.jsx";
 import PlayButton from "./components/PlayButton.jsx";
@@ -121,20 +122,16 @@ const App = () => {
     return recordInterval.length === 0;
   };
 
-  // Set record state
-  const setRecord = () => {
+  // Update isRecord state
+  const updateIsRecord = () => {
     let record = isRecord;
     record.value = !record.value;
     setIsRecord(isRecord);
     forceUpdate();
   };
 
-  // Handle in pad(sound) click
-  const handleSoundClick = (soundId) => {
-    let sound = sounds[soundId];
-    sound.isActive = !sound.isActive;
-    setSounds(sounds);
-    forceUpdate();
+  // Update the state isSoundsClicked
+  const updateIsSoundClicked = () => {
     if (Object.values(sounds).filter((x) => x.isActive).length > 0) {
       setIsSoundsClicked(true);
     } else {
@@ -142,12 +139,21 @@ const App = () => {
     }
   };
 
+  // Handle in pad(sound) click
+  const handleSoundClick = (soundId) => {
+    let sound = sounds[soundId];
+    sound.isActive = !sound.isActive;
+    setSounds(sounds);
+    updateIsSoundClicked();
+    forceUpdate();
+  };
+
   // Handle record click
   const handleRecordClick = () => {
     if (!isRecord.value) {
       setRecordInterval([]);
       // Set record state
-      setRecord();
+      updateIsRecord();
 
       // Update the first interval of recording - when click on recording
       if (isPlaying) {
@@ -165,7 +171,7 @@ const App = () => {
     // Set the last interval of recording - when click off recording
     else {
       // Set record state
-      setRecord();
+      updateIsRecord();
 
       // Set the last session of the record
       const activeSounds = Object.values(sounds).filter((x) => x.isActive);
@@ -176,10 +182,48 @@ const App = () => {
     }
   };
 
+  // Handle stop music clicked
+  const handleStopMusicClick = () => {
+    //Only if play state - true
+    if (isPlaying) {
+      if (isRecord.value) {
+        // Set record state
+        updateIsRecord();
+      }
+
+      // Change state of playing
+      setIsPlaying((isPlaying) => !isPlaying);
+      // Clear the interval
+      clearInterval(stateCurrInterval);
+      // Stop all the sounds
+      Object.values(sounds).map((sound) => {
+        sound.isActive = false;
+        sound.audio.pause();
+        sound.audio.currentTime = 0;
+      });
+
+      setSounds(sounds);
+      forceUpdate();
+
+      // Update the state isSoundsClicked when click stop
+      updateIsSoundClicked();
+    }
+  };
+
+  // Start to play the music - set interval
+  const handlePlayMusicClick = () => {
+    if (!isPlaying) {
+      setIsPlaying((isPlaying) => !isPlaying);
+      playSoundsInterval();
+      const interval = setInterval(() => updateLooper(), 8000);
+      setStateCurrInterval(interval);
+    }
+  };
+
   // Play the record Session
   const playRecoding = (index) => {
-    if (index == 0) {
-      stopMusic();
+    if (index === 0) {
+      handleStopMusicClick();
     } // stop the music when play session
     else {
       Object.values(sounds).map((sound) => {
@@ -215,6 +259,25 @@ const App = () => {
     }
   };
 
+  // Playing the sound in intervals
+  const playSoundsInterval = () => {
+    Object.values(sounds).map((sound) => {
+      if (sound.isActive) {
+        sound.audio.pause();
+        sound.audio.currentTime = 0;
+        sound.audio.play();
+      } else {
+        sound.audio.pause();
+        sound.audio.currentTime = 0;
+      }
+    });
+
+    if (Object.values(sounds).filter((x) => x.isActive).length === 0) {
+      setIsPlaying(false);
+    }
+  };
+
+  // Looper that play the selected sound in loop
   const updateLooper = () => {
     // If recording- update the intervals
     if (isRecord.value) {
@@ -232,84 +295,48 @@ const App = () => {
     playSoundsInterval();
   };
 
-  // Playing the sound in intervals
-  const playSoundsInterval = () => {
-    Object.values(sounds).map((sound) => {
-      if (sound.isActive) {
-        sound.audio.pause();
-        sound.audio.currentTime = 0;
-        sound.audio.play();
-      } else {
-        sound.audio.pause();
-        sound.audio.currentTime = 0;
-      }
-    });
-  };
-
-  // Start to play the music - set interval
-  const playMusic = () => {
-    if (!isPlaying) {
-      setIsPlaying((isPlaying) => !isPlaying);
-
-      playSoundsInterval();
-      const interval = setInterval(() => updateLooper(), 8000);
-      setStateCurrInterval(interval);
-    }
-  };
-
-  // Stop all the sounds that play
-  const stopMusic = () => {
-    //Only if play state - true
-    if (isPlaying) {
-      if (isRecord.value) {
-        // Set record state
-        setRecord();
-      }
-
-      // Change state of playing
-      setIsPlaying((isPlaying) => !isPlaying);
-      // Clear the interval
-      clearInterval(stateCurrInterval);
-      // Stop all the sounds
-      Object.values(sounds).map((sound) => {
-        sound.isActive = false;
-        sound.audio.pause();
-        sound.audio.currentTime = 0;
-      });
-
-      setSounds(sounds);
-      forceUpdate();
-    }
-  };
-
   // Render
   return (
-    <div className={classes.root}>
-      <ButtonGroup className={classes.buttons} className="music-sounds">
+    <div className="button-container">
+      <h1 className="header">My Looper</h1>
+      <ButtonGroup className="music-sounds">
         <PlaySessionButton
           playRecoding={playRecoding}
           isRecord={isRecord.value}
           isRecordEmpty={recordIsEmpty}
         />
         <RecordButton
+          className="Button-root"
           isPlaying={isPlaying}
           recordMusic={handleRecordClick}
           isRecord={isRecord.value}
         />
-        <StopButton stopMusic={stopMusic} isPlaying={isPlaying} />
+        <StopButton
+          className="Button-root"
+          handleStopMusicClick={handleStopMusicClick}
+          isPlaying={isPlaying}
+        />
         <PlayButton
-          playMusic={playMusic}
+          className="Button-root"
+          handlePlayMusicClick={handlePlayMusicClick}
           isPlaying={isPlaying}
           isSoundsClicked={isSoundsClicked}
         />
       </ButtonGroup>
-      <Box>
-        <Grid className={classes.pads}>
-          {Object.values(sounds).map((sound) => (
-            <Pad key={sound.id} sound={sound} updatedSound={handleSoundClick} />
-          ))}
-        </Grid>
-      </Box>
+      <div className="sounds">
+        <Box className="Box">
+          <Grid className={classes.pads}>
+            {Object.values(sounds).map((sound, index) => (
+              <Pad
+                className="Button-root"
+                key={index}
+                sound={sound}
+                updatedSound={handleSoundClick}
+              />
+            ))}
+          </Grid>
+        </Box>
+      </div>
     </div>
   );
 };
